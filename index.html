@@ -3,60 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الأضواء - تحدي الذاكرة</title>
+    <title>لعبة الذاكرة الإلكترونية</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #0a0a0a; font-family: sans-serif; color: white; user-select: none; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        body { margin: 0; overflow: hidden; background-color: #111; font-family: sans-serif; color: white; user-select: none; display: flex; justify-content: center; align-items: center; height: 100vh; }
         
-        #main-container { display: flex; gap: 40px; z-index: 10; width: 95%; max-width: 1000px; align-items: center; justify-content: center; }
+        #main-container { display: flex; gap: 30px; z-index: 10; width: 95%; max-width: 1000px; align-items: flex-start; }
         
-        /* شبكة الأضواء */
-        #game-board { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 400px; height: 400px; }
-        .light {
-            border-radius: 20px;
-            cursor: none;
-            transition: transform 0.1s, box-shadow 0.1s, filter 0.1s;
-            filter: brightness(0.3); /* مطفأ بالبداية */
-            border: 4px solid #222;
-        }
-        
-        /* ألوان الأضواء */
-        #red { background-color: #ff3b30; }
-        #blue { background-color: #007aff; }
-        #green { background-color: #34c759; }
-        #yellow { background-color: #ffcc00; }
+        /* شبكة الكروت (على اليمين) */
+        #game-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; flex: 2; }
+        .card { aspect-ratio: 3/4; background-color: #2a2a2a; border-radius: 12px; display: flex; justify-content: center; align-items: center; cursor: none; transition: transform 0.3s, background-color 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.5); border: 2px solid #444; overflow: hidden; padding: 10px; }
+        .card img { width: 100%; height: 100%; object-fit: contain; display: none; border-radius: 8px; }
+        .card.flipped { background-color: #007aff; border-color: #fff; }
+        .card.flipped img { display: block; }
+        .card.matched { background-color: #34c759; border-color: #34c759; opacity: 0.8; }
+        .card.matched img { display: block; }
 
-        /* تأثير الإضاءة */
-        .light.active {
-            filter: brightness(1.5);
-            transform: scale(1.05);
-            box-shadow: 0 0 30px currentColor;
-            border-color: #fff;
-        }
-
-        /* اللوحة الجانبية */
-        #sidebar { display: flex; flex-direction: column; gap: 20px; width: 300px; }
+        /* اللوحة الجانبية (على اليسار) */
+        #sidebar { flex: 1.2; display: flex; flex-direction: column; gap: 15px; }
         
-        #camera-box { width: 100%; height: 220px; background: #000; border: 3px solid #444; border-radius: 15px; overflow: hidden; box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+        /* صندوق الكاميرا */
+        #camera-box { position: relative; width: 100%; height: 220px; background: #000; border: 3px solid #007aff; border-radius: 15px; overflow: hidden; box-shadow: 0 0 15px rgba(0, 122, 255, 0.4); }
         #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        #data-panel { background: rgba(0,0,0,0.8); padding: 20px; border-radius: 15px; border: 2px solid #444; text-align: center; }
-        #status-text { font-size: 24px; font-weight: bold; color: #ffcc00; margin-bottom: 15px; height: 30px; }
-        .score-box { font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 10px; }
+        /* لوحة البيانات */
+        #data-panel { background: rgba(0,0,0,0.8); padding: 15px; border-radius: 15px; border: 2px solid #444; display: flex; flex-direction: column; gap: 10px; }
+        .timer-box { padding: 10px; border-radius: 10px; font-size: 20px; font-weight: bold; text-align: center; border: 2px solid #555; }
+        #preview-timer { color: #ffcc00; display: none; border-color: #ffcc00; }
+        #game-timer { color: #0f0; display: none; border-color: #0f0; }
+
+        /* معلومات القطع */
+        #info-panel { background: rgba(0, 122, 255, 0.2); border: 2px solid #007aff; padding: 10px; border-radius: 10px; text-align: center; font-size: 14px; min-height: 50px; display: none; }
         
-        #leaderboard { border-top: 1px solid #444; padding-top: 15px; margin-top: 15px; text-align: right; }
-        #leaderboard h3 { margin: 0 0 10px 0; font-size: 16px; color: #34c759; text-align: center; }
-        .score-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; background: #222; padding: 8px; border-radius: 5px; }
+        #names-list { list-style: none; padding: 0; margin: 0; font-size: 13px; max-height: 100px; overflow-y: auto; }
+        #names-list li { background: #222; margin-bottom: 5px; padding: 6px; border-radius: 5px; border-right: 3px solid #34c759; }
+
+        #leaderboard { border-top: 1px solid #444; padding-top: 10px; }
+        #leaderboard h3 { margin: 0 0 10px 0; font-size: 16px; color: #ffcc00; text-align: center; }
+        .score-item { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; background: #222; padding: 5px 10px; border-radius: 5px; }
 
         /* المؤشر */
-        #cursor { position: absolute; width: 40px; height: 40px; background-color: rgba(255, 255, 255, 0.2); border-radius: 50%; pointer-events: none; z-index: 100; transform: translate(-50%, -50%); border: 2px solid #fff; box-shadow: 0 0 15px #fff; display: none; }
+        #cursor { position: absolute; width: 30px; height: 30px; background-color: rgba(255, 59, 48, 0.7); border-radius: 50%; pointer-events: none; z-index: 100; transform: translate(-50%, -50%); border: 2px solid white; box-shadow: 0 0 10px red; display: none; }
 
         /* شاشات البداية والنهاية */
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 50; }
-        #overlay h1 { font-size: 40px; margin-bottom: 10px; color: #ffcc00; text-shadow: 0 0 20px #ffcc00; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 50; }
+        #overlay h1 { font-size: 40px; margin-bottom: 10px; color: #007aff; }
         #overlay p { font-size: 18px; color: #ccc; margin: 5px; text-align: center; }
-        #player-name { padding: 12px; font-size: 18px; border-radius: 8px; border: none; margin-top: 20px; text-align: center; width: 250px; }
-        #start-btn { margin-top: 20px; padding: 15px 40px; font-size: 20px; font-weight: bold; background-color: #ffcc00; color: #000; border: none; border-radius: 30px; cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px #ffcc00; }
-        #start-btn:hover { background-color: #ffdb4d; transform: scale(1.05); }
+        #player-name { padding: 10px; font-size: 18px; border-radius: 8px; border: none; margin-top: 20px; text-align: center; width: 200px; }
+        #start-btn { margin-top: 15px; padding: 12px 30px; font-size: 18px; font-weight: bold; background-color: #007aff; color: white; border: none; border-radius: 30px; cursor: pointer; transition: 0.2s; }
+        #start-btn:hover { background-color: #005bb5; }
     </style>
 </head>
 <body>
@@ -64,26 +58,33 @@
     <div id="cursor"></div>
 
     <div id="main-container">
-        <!-- لوحة الأضواء -->
-        <div id="game-board">
-            <div class="light" id="red" data-color="red"></div>
-            <div class="light" id="blue" data-color="blue"></div>
-            <div class="light" id="green" data-color="green"></div>
-            <div class="light" id="yellow" data-color="yellow"></div>
-        </div>
+        <!-- شبكة اللعبة -->
+        <div id="game-container"></div>
 
         <!-- اللوحة الجانبية -->
         <div id="sidebar">
+            
+            <!-- صورة الكاميرا عالجنب -->
             <div id="camera-box">
                 <video id="video" autoplay playsinline muted></video>
             </div>
 
+            <!-- لوحة المؤقتات والمعلومات -->
             <div id="data-panel">
-                <div id="status-text">استعد...</div>
-                <div class="score-box">المستوى الحالي: <span id="level-display">1</span></div>
+                <div id="preview-timer" class="timer-box">👀 حفظ: 10</div>
+                <div id="game-timer" class="timer-box">⏳ وقت: 40</div>
                 
+                <!-- معلومة القطعة اللي بتتطابق -->
+                <div id="info-panel">
+                    <strong id="info-name"></strong><br>
+                    <span id="info-fact"></span>
+                </div>
+
+                <h3 style="margin: 5px 0 0 0; font-size: 14px; color: #ccc;">🔍 القطع المكتشفة:</h3>
+                <ul id="names-list"></ul>
+
                 <div id="leaderboard">
-                    <h3>🏆 أبطال الذاكرة</h3>
+                    <h3>🏆 أسرع 3 طلاب</h3>
                     <div id="scores-container"></div>
                 </div>
             </div>
@@ -92,9 +93,9 @@
 
     <!-- شاشة البداية -->
     <div id="overlay">
-        <h1>💡 لعبة الأضواء</h1>
-        <p>راقب تسلسل إضاءة الألوان، ثم أعده بنفس الترتيب</p>
-        <p>استخدم إصبعك للتحكم بالمؤشر</p>
+        <h1>⚡ تحدي الذاكرة الإلكترونية</h1>
+        <p>جد الأزواج المتشابهة قبل انتهاء الـ 40 ثانية</p>
+        <p>الأسرع في إنهاء اللعبة هو من يفوز!</p>
         <input type="text" id="player-name" placeholder="اكتب اسمك هنا..." autocomplete="off">
         <button id="start-btn">ابدأ التحدي</button>
     </div>
@@ -104,121 +105,191 @@
 
         const video = document.getElementById('video');
         const cursor = document.getElementById('cursor');
+        const gameContainer = document.getElementById('game-container');
+        const namesList = document.getElementById('names-list');
+        const previewTimer = document.getElementById('preview-timer');
+        const gameTimer = document.getElementById('game-timer');
         const overlay = document.getElementById('overlay');
         const startBtn = document.getElementById('start-btn');
         const playerNameInput = document.getElementById('player-name');
-        const statusText = document.getElementById('status-text');
-        const levelDisplay = document.getElementById('level-display');
         
-        const colors = ['red', 'blue', 'green', 'yellow'];
-        const lights = {
-            red: document.getElementById('red'),
-            blue: document.getElementById('blue'),
-            green: document.getElementById('green'),
-            yellow: document.getElementById('yellow')
-        };
+        const infoPanel = document.getElementById('info-panel');
+        const infoName = document.getElementById('info-name');
+        const infoFact = document.getElementById('info-fact');
 
-        let handLandmarker = null;
-        let sequence = [];
-        let playerSequence = [];
-        let level = 1;
-        let isGameActive = false;
-        let isPlayerTurn = false;
-        let currentPlayer = "لاعب مجهول";
+        // 🔴 أسماء صور الإلكترونيات (تأكدي إنها بنفس المجلد وبنفس الأسماء) 🔴
+        const icons = [
+            { img: "resistor.jpg", name: "مقاومة (Resistor)", fact: "تحد من تدفق التيار الكهربائي." },
+            { img: "capacitor.jpg", name: "مكثف (Capacitor)", fact: "يخزن الطاقة ويطلقها عند الحاجة." },
+            { img: "transistor.jpg", name: "ترانزستور (Transistor)", fact: "مفتاح إلكتروني دقيق." },
+            { img: "led.jpg", name: "دايود (LED)", fact: "يحول الكهرباء إلى ضوء." },
+            { img: "arduino.jpg", name: "أردوينو (Arduino)", fact: "عقل المشاريع الإلكترونية." },
+            { img: "servo.jpg", name: "محرك سيرفو (Servo)", fact: "يتحكم بالزوايا بدقة." },
+            { img: "battery.jpg", name: "بطارية (Battery)", fact: "مصدر الطاقة الرئيسي." },
+            { img: "sensor.jpg", name: "حساس (Ultrasonic)", fact: "يقيس المسافات بالموجات." }
+        ];
+
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let lockBoard = true;
         let lastHoverTime = 0;
-        let hoveredLight = null;
+        let hoveredCard = null;
+        let handLandmarker = null;
+        
+        let gameInterval = null;
+        let previewTime = 10;
+        let playTime = 40;
+        let isGameActive = false;
+        let currentPlayer = "مجهول";
 
-        // إدارة النتائج
-        let highScores = JSON.parse(localStorage.getItem('lightsGameScores')) || [];
+        let highScores = JSON.parse(localStorage.getItem('electronicsGameScoresFinal')) || [];
         function renderScores() {
-            highScores.sort((a, b) => b.level - a.level); // الأعلى مستوى أولاً
+            highScores.sort((a, b) => a.time - b.time);
             const container = document.getElementById('scores-container');
             container.innerHTML = '';
             highScores.slice(0, 3).forEach((score, index) => {
-                container.innerHTML += `<div class="score-item"><span>${index+1}. ${score.name}</span> <span>مستوى ${score.level}</span></div>`;
+                container.innerHTML += `<div class="score-item"><span>${index+1}. ${score.name}</span> <span>${score.time} ث</span></div>`;
             });
         }
         renderScores();
 
-        // دالة النوم (لتأخير الأحداث)
-        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-        // تشغيل ضوء معين
-        async function flashLight(color, duration = 500) {
-            lights[color].classList.add('active');
-            await sleep(duration);
-            lights[color].classList.remove('active');
-            await sleep(200);
-        }
-
-        // بدء الجولة التالية
-        async function nextRound() {
-            isPlayerTurn = false;
-            playerSequence = [];
-            levelDisplay.innerText = level;
-            statusText.innerText = "راقب...";
-            statusText.style.color = "#ffcc00";
+        function createBoard() {
+            let deck = [...icons, ...icons].sort(() => Math.random() - 0.5);
+            gameContainer.innerHTML = '';
+            namesList.innerHTML = '';
+            cards = [];
             
-            // إضافة لون جديد عشوائي
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            sequence.push(randomColor);
+            deck.forEach((item) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.icon = item.name;
+                card.dataset.name = item.name;
+                card.dataset.fact = item.fact;
+                
+                const img = document.createElement('img');
+                img.src = item.img;
+                card.appendChild(img);
 
-            await sleep(1000);
-
-            // عرض التسلسل
-            for (let color of sequence) {
-                await flashLight(color);
-            }
-
-            // دور اللاعب
-            isPlayerTurn = true;
-            statusText.innerText = "دورك الآن!";
-            statusText.style.color = "#34c759";
+                gameContainer.appendChild(card);
+                cards.push(card);
+            });
         }
 
-        // التحقق من اختيار اللاعب
-        async function handlePlayerInput(color) {
-            if (!isPlayerTurn || !isGameActive) return;
-
-            // تأثير بصري
-            lights[color].classList.add('active');
-            setTimeout(() => lights[color].classList.remove('active'), 300);
-
-            playerSequence.push(color);
-            const currentIndex = playerSequence.length - 1;
-
-            // إذا اختار لون غلط
-            if (playerSequence[currentIndex] !== sequence[currentIndex]) {
-                isGameActive = false;
-                isPlayerTurn = false;
-                statusText.innerText = "خطأ!";
-                statusText.style.color = "#ff3b30";
+        function startPreview() {
+            overlay.style.display = 'none';
+            previewTimer.style.display = 'block';
+            gameTimer.style.display = 'block';
+            
+            cards.forEach(card => card.classList.add('flipped'));
+            
+            previewTime = 10;
+            previewTimer.innerText = `👀 حفظ: ${previewTime}`;
+            
+            let previewInterval = setInterval(() => {
+                previewTime--;
+                previewTimer.innerText = `👀 حفظ: ${previewTime}`;
                 
-                // حفظ النتيجة
-                highScores.push({ name: currentPlayer, level: level - 1 });
-                localStorage.setItem('lightsGameScores', JSON.stringify(highScores));
+                if (previewTime <= 0) {
+                    clearInterval(previewInterval);
+                    previewTimer.style.display = 'none';
+                    startGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            cards.forEach(card => card.classList.remove('flipped'));
+            lockBoard = false;
+            isGameActive = true;
+            
+            playTime = 40;
+            gameTimer.innerText = `⏳ وقت: ${playTime}`;
+            gameTimer.style.color = '#0f0';
+
+            gameInterval = setInterval(() => {
+                playTime--;
+                gameTimer.innerText = `⏳ وقت: ${playTime}`;
+                
+                if (playTime <= 10) gameTimer.style.color = '#ff3b30';
+                
+                if (playTime <= 0) {
+                    endGame(false);
+                }
+            }, 1000);
+        }
+
+        function endGame(isWin) {
+            clearInterval(gameInterval);
+            isGameActive = false;
+            lockBoard = true;
+            
+            overlay.style.display = 'flex';
+            
+            if (isWin) {
+                let timeTaken = 40 - playTime; 
+                highScores.push({ name: currentPlayer, time: timeTaken });
+                localStorage.setItem('electronicsGameScoresFinal', JSON.stringify(highScores));
                 renderScores();
 
-                await sleep(1000);
-                overlay.style.display = 'flex';
-                overlay.innerHTML = `<h1 style="color:#ff3b30">انتهت اللعبة!</h1>
-                                     <p>وصلت للمستوى ${level - 1}</p>
-                                     <button id="start-btn" onclick="location.reload()">حاول مرة أخرى</button>`;
-                return;
-            }
-
-            // إذا أكمل التسلسل بنجاح
-            if (playerSequence.length === sequence.length) {
-                isPlayerTurn = false;
-                statusText.innerText = "ممتاز!";
-                statusText.style.color = "#007aff";
-                level++;
-                await sleep(1500);
-                nextRound();
+                overlay.innerHTML = `<h1 style="color:#34c759">🏆 مبروك ${currentPlayer}!</h1>
+                                     <p>لقد فزت في <strong style="color:#fff">${timeTaken} ثانية</strong></p>
+                                     <button id="start-btn" onclick="location.reload()">العب مرة أخرى</button>`;
+            } else {
+                overlay.innerHTML = `<h1 style="color:#ff3b30">⏰ انتهى الوقت!</h1>
+                                     <p>كانت قريباً... جرب مرة أخرى</p>
+                                     <button id="start-btn" onclick="location.reload()">إعادة المحاولة</button>`;
             }
         }
 
-        // إعداد الكاميرا والرؤية الحاسوبية
+        function flipCard(card) {
+            if (lockBoard || !isGameActive) return;
+            if (card === flippedCards[0] || card.classList.contains('flipped')) return;
+
+            card.classList.add('flipped');
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            lockBoard = true;
+            const [card1, card2] = flippedCards;
+
+            if (card1.dataset.icon === card2.dataset.icon) {
+                setTimeout(() => {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    
+                    const li = document.createElement('li');
+                    li.innerText = card1.dataset.name;
+                    namesList.appendChild(li);
+
+                    infoName.innerText = card1.dataset.name;
+                    infoFact.innerText = card1.dataset.fact;
+                    infoPanel.style.display = 'block';
+
+                    matchedPairs++;
+                    if (matchedPairs === icons.length) {
+                        endGame(true);
+                    }
+                    resetBoard();
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    resetBoard();
+                }, 800);
+            }
+        }
+
+        function resetBoard() {
+            [flippedCards, lockBoard] = [[], false];
+        }
+
         async function initCV() {
             const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
             handLandmarker = await HandLandmarker.createFromOptions(vision, {
@@ -237,7 +308,6 @@
             requestAnimationFrame(predictWebcam);
         }
 
-        // تتبع اليد
         function predictWebcam() {
             if (video.readyState === 4) {
                 const now = performance.now();
@@ -254,49 +324,39 @@
                     cursor.style.left = x + 'px';
                     cursor.style.top = y + 'px';
 
-                    if (isPlayerTurn) {
-                        checkHover(x, y, now);
-                    }
+                    checkHover(x, y, now);
                 } else {
                     cursor.style.display = 'none';
-                    hoveredLight = null;
+                    hoveredCard = null;
                 }
             }
             requestAnimationFrame(predictWebcam);
         }
 
-        // التحقق من التوقف فوق الضوء
         function checkHover(x, y, now) {
             const element = document.elementFromPoint(x, y);
             
-            if (element && element.classList.contains('light')) {
-                if (element !== hoveredLight) {
-                    hoveredLight = element;
+            if (element && element.closest('.card')) {
+                const card = element.closest('.card');
+                
+                if (card !== hoveredCard) {
+                    hoveredCard = card;
                     lastHoverTime = now; 
-                } else if (now - lastHoverTime > 400) { // التوقف لـ 0.4 ثانية
-                    handlePlayerInput(element.dataset.color);
-                    lastHoverTime = now + 1000; // منع التكرار السريع
+                } else if (now - lastHoverTime > 600) { 
+                    flipCard(card);
+                    lastHoverTime = now + 1000; 
                 }
             } else {
-                hoveredLight = null;
+                hoveredCard = null;
             }
         }
 
-        // بدء اللعبة
         startBtn.addEventListener('click', () => {
             currentPlayer = playerNameInput.value.trim() || "لاعب مجهول";
-            overlay.style.display = 'none';
-            isGameActive = true;
-            level = 1;
-            sequence = [];
-            
-            // إخفاء المؤشر الافتراضي للمتصفح
-            document.body.style.cursor = 'none';
-            
+            createBoard();
+            startPreview();
             initCV().catch(err => {
                 alert("خطأ بالكاميرا: تأكد من إعطاء الإذن.");
-            }).then(() => {
-                nextRound();
             });
         });
 
